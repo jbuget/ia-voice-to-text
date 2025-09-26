@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local configuration / editor settings
+.vscode/
+.history/
+
+# OS metadata
+.DS_Store
+
+# Model weights (downloaded separately)
+models/
+
+# Input/Output media and generated text
+input/
+output/
+
+# Logs
+*.log
