@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # Usage: ./download_model.sh [huggingface_repo] [target_dir]
-# Example: ./download_model.sh Systran/faster-whisper-large-v3 models/whisper-large-v3
+# Example: ./download_model.sh Systran/faster-whisper-medium models/whisper-medium
 
-REPO="${1:-Systran/faster-whisper-large-v3}"
-TARGET_DIR="${2:-models/whisper-large-v3}"
+REPO="${1:-Systran/faster-whisper-medium}"
+TARGET_DIR="${2:-models/whisper-medium}"
 BASE_URL="https://huggingface.co/${REPO}/resolve/main"
 REQUIRED_FILES=(
   config.json
