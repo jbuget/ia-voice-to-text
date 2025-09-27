@@ -86,6 +86,8 @@ Réponse de l'API :
 - Node `HTTP Request` -> POST vers `/transcribe` en multipart avec le fichier audio (`file`).
 - Récupérez `{{ $json["text"] }}` pour enchaîner vos traitements (résumé, stockage, etc.).
 - Vérifiez `GET /health` pour connaître la liste des modèles chargés (`loaded_models`).
+- Option pratique : `GET /upload` sert une page HTML pour envoyer un fichier audio existant vers votre webhook n8n (l'URL cible peut être saisie ou pré-remplie via `TRANSCRIBE_FORWARD_URL`).
+- Interface locale : `GET /recording` ouvre une page de capture audio (start/stop/envoi) qui poste directement vers `/transcribe`. La capture repose sur `MediaRecorder` (Chrome, Edge, Firefox, Android). Safari iOS ne gère pas encore cette API : privilégiez un envoi via l'app Dictaphone ou un raccourci iOS.
 
 ## Structure du projet
 - `transcribe.py` : script principal de transcription/traduction.
