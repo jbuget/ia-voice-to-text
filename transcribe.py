@@ -65,7 +65,6 @@ def transcribe_audio(
     model: WhisperModel,
     audio_path: Union[str, pathlib.Path],
     language: Optional[str] = None,
-    translate_to_en: bool = False,
     vad: bool = False,
     word_timestamps: bool = False,
     beam_size: int = 5,
@@ -75,7 +74,7 @@ def transcribe_audio(
     segments_iter, info = model.transcribe(
         str(audio_path),
         language=language,
-        task="translate" if translate_to_en else "transcribe",
+        task="transcribe",
         vad_filter=vad,
         vad_parameters=dict(min_silence_duration_ms=500) if vad else None,
         word_timestamps=word_timestamps,
@@ -151,8 +150,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-m",
         "--model",
-        default="./models/whisper-small",
-        help="Chemin d’un dossier modèle OU nom HuggingFace (défaut: ./models/whisper-small)",
+        default="./models/whisper-medium",
+        help="Chemin d’un dossier modèle OU nom HuggingFace (défaut: ./models/whisper-medium)",
     )
     parser.add_argument(
         "--device",
@@ -169,11 +168,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--language",
         default=None,
         help="Code langue (ex: fr, en). Laisser vide pour auto-détection.",
-    )
-    parser.add_argument(
-        "--translate-to-en",
-        action="store_true",
-        help="Traduire vers l’anglais (au lieu de transcrire).",
     )
     parser.add_argument(
         "--word-timestamps",
@@ -218,7 +212,6 @@ def main() -> None:
         model=model,
         audio_path=audio_path,
         language=args.language,
-        translate_to_en=args.translate_to_en,
         vad=args.vad,
         word_timestamps=args.word_timestamps,
     )

@@ -20,11 +20,11 @@ Petit utilitaire en ligne de commande et service API pour transcrire ou traduire
    - Utilisez le script fourni :
      ```bash
      chmod +x download_model.sh
-     ./download_model.sh Systran/faster-whisper-small models/whisper-small
+     ./download_model.sh Systran/faster-whisper-medium models/whisper-medium
      ```
      Les fichiers optionnels absents du depot (ex. `tokenizer_config.json`) sont ignores avec un simple avertissement.
    - Telechargement manuel d'un modele 
-     (`whisper-small` par defaut) depuis https://huggingface.co/Systran/faster-whisper-small (placez-le dans `./models/whisper-small`).
+     (`whisper-medium` par defaut) depuis https://huggingface.co/Systran/faster-whisper-medium (placez-le dans `./models/whisper-medium`).
    - Ou laissez `faster-whisper` recuperer automatiquement le modele en ligne si vous avez un acces reseau.
 
 ## Utilisation CLI
@@ -36,18 +36,12 @@ Le script genere un fichier texte cote a cote du fichier source (`fichier_audio.
 
 ### Options utiles
 - `-o/--output`: chemin du fichier texte de sortie (les dossiers manquants sont créés automatiquement).
-- `-m/--model`: chemin vers un dossier de modele local ou nom d'un modele Hugging Face (défaut `./models/whisper-small`).
+- `-m/--model`: chemin vers un dossier de modele local ou nom d'un modele Hugging Face (défaut `./models/whisper-medium`).
 - `--device`: force `cpu`, `cuda` ou `auto` (auto par defaut).
 - `--compute-type`: controle la precision (ex. `int8`, `float16`, `float32`). Par defaut le script choisit `float32` sur CPU pour eviter l'avertissement ctranslate2 et `float16` sur GPU.
 - `--language`: force un code langue (ex. `fr`, `en`). Par defaut la detection automatique est active.
-- `--translate-to-en`: effectue une traduction vers l'anglais au lieu d'une simple transcription.
 - `--word-timestamps`: calcule aussi les horodatages au mot (plus lent) — utile si vous souhaitez modifier le script pour les exploiter.
 - `--vad`: active un filtre VAD pour reduire les silences/bruits.
-
-### Exemple pour traduire vers l'anglais
-```bash
-python transcribe.py chemin/video.mp4 --translate-to-en --device auto
-```
 
 ### Conseils de performance
 - Sur CPU, preferez un modele taille moyenne (`small`, `medium`).
@@ -64,7 +58,10 @@ python transcribe.py chemin/video.mp4 --translate-to-en --device auto
    - `TRANSCRIBE_DEVICE` (`auto` | `cpu` | `cuda`)
    - `TRANSCRIBE_COMPUTE_TYPE` (ex. `float16`, `float32`)
 3. Envoyez un fichier audio/Video via POST `http://localhost:8000/transcribe` (multipart, champ `file`).
-   Vous pouvez transmettre en champs de formulaire les options `language`, `translate_to_en`, `vad`, `word_timestamps`.
+   - Les modèles exploitables sont ceux **déjà présents dans le dossier `models/` au démarrage** (par exemple `whisper-medium`, `whisper-small`).
+   - Le champ `model` accepte le nom du dossier (`whisper-medium`) ou son chemin (`models/whisper-medium`).
+   - Vous pouvez transmettre `language`, `vad`, `word_timestamps`.
+   - Après avoir ajouté un nouveau modèle sur disque, redémarrez le serveur pour qu'il soit pris en compte.
 
 Réponse de l'API :
 ```json
@@ -78,6 +75,8 @@ Réponse de l'API :
   "word_count": 42,
   "char_count": 210,
   "segment_count": 5,
+  "model": "whisper-small",
+  "model_path": "/chemin/absolu/vers/models/whisper-small",
   "device": "cpu",
   "compute_type": "float32"
 }
@@ -86,6 +85,7 @@ Réponse de l'API :
 ### Integration n8n (exemple rapide)
 - Node `HTTP Request` -> POST vers `/transcribe` en multipart avec le fichier audio (`file`).
 - Récupérez `{{ $json["text"] }}` pour enchaîner vos traitements (résumé, stockage, etc.).
+- Vérifiez `GET /health` pour connaître la liste des modèles chargés (`loaded_models`).
 
 ## Structure du projet
 - `transcribe.py` : script principal de transcription/traduction.
