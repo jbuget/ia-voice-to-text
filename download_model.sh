@@ -10,8 +10,11 @@ BASE_URL="https://huggingface.co/${REPO}/resolve/main"
 REQUIRED_FILES=(
   config.json
   tokenizer.json
-  vocabulary.json
   model.bin
+)
+VOCAB_CANDIDATES=(
+  vocabulary.json
+  vocabulary.txt
 )
 OPTIONAL_FILES=(
   special_tokens_map.json
@@ -50,7 +53,21 @@ for file in "${REQUIRED_FILES[@]}"; do
   fi
 done
 
-if ((${#missing_required[@]})); then
+vocab_found=false
+for file in "${VOCAB_CANDIDATES[@]}"; do
+  echo "- $file (vocabulaire)"
+  if download "$BASE_URL/$file" "$TARGET_DIR/$file"; then
+    vocab_found=true
+    break
+  else
+    rm -f "$TARGET_DIR/$file"
+  fi
+done
+
+if ((${#missing_required[@]})) || [ "$vocab_found" = false ]; then
+  if [ "$vocab_found" = false ]; then
+    missing_required+=("vocabulary.json|vocabulary.txt")
+  fi
   echo "Erreur: fichiers indispensables introuvables: ${missing_required[*]}" >&2
   exit 1
 fi
