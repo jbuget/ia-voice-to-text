@@ -3,3 +3,4 @@ torch
 fastapi
 uvicorn[standard]
 python-multipart
+jinja2

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Téléversement | IA Voice to Text{% endblock %}
+{% block body %}
+<header>
+  <div class="container">
+    <h1>Envoyer un fichier audio vers n8n</h1>
+  </div>
+</header>
+<main>
+  <div class="container">
+    <p>Sélectionnez un fichier audio/vidéo local et envoyez-le vers votre webhook n8n.</p>
+    <form id="upload-form" method="post" action="{{ forward_url or '' }}" enctype="multipart/form-data" style="display:grid;gap:1rem;max-width:560px;margin-top:1.5rem;">
+      <label style="display:flex;flex-direction:column;gap:0.5rem;font-weight:600;">
+        URL de destination (webhook n8n)
+        <input id="target-url" name="target_url" type="url" value="{{ forward_url }}" placeholder="https://example.com/webhook" required style="padding:0.6rem 0.8rem;font-size:1rem;border:1px solid #ced4da;border-radius:6px;" />
+      </label>
+      <label style="display:flex;flex-direction:column;gap:0.5rem;font-weight:600;">
+        Fichier audio/vidéo
+        <input name="file" type="file" accept="audio/*,video/*" required />
+      </label>
+      <label style="display:flex;flex-direction:column;gap:0.5rem;font-weight:600;">
+        Modèle recommandé
+        <select name="model" style="padding:0.6rem 0.8rem;font-size:1rem;border:1px solid #ced4da;border-radius:6px;">
+          {% for alias in model_aliases %}
+          <option value="{{ alias }}" {% if alias == default_alias %}selected{% endif %}>{{ alias }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:0.5rem;font-weight:600;">
+        Langue (optionnel)
+        <input name="language" type="text" placeholder="fr, en, ..." style="padding:0.6rem 0.8rem;font-size:1rem;border:1px solid #ced4da;border-radius:6px;" />
+      </label>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-weight:500;">
+        <input name="vad" type="checkbox" value="true" />
+        Activer le filtre VAD
+      </label>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-weight:500;">
+        <input name="word_timestamps" type="checkbox" value="true" />
+        Inclure les horodatages par mot
+      </label>
+      <p style="font-size:0.9rem;color:#495057;">Les paramètres sont transmis tels quels à votre webhook.</p>
+      <button type="submit" style="padding:0.75rem 1.5rem;font-size:1rem;background:#0b7285;color:#fff;border:0;border-radius:8px;cursor:pointer;">Envoyer vers n8n</button>
+    </form>
+  </div>
+</main>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  const form = document.getElementById('upload-form');
+  form.addEventListener('submit', (event) => {
+    const targetInput = document.getElementById('target-url');
+    if (!targetInput.value) {
+      event.preventDefault();
+      alert('Merci de renseigner une URL de destination.');
+      return;
+    }
+    form.action = targetInput.value;
+  });
+</script>
+{% endblock %}

@@ -54,7 +54,7 @@ Le script genere un fichier texte cote a cote du fichier source (`fichier_audio.
    uvicorn app:app --reload
    ```
    Variables d'environnement disponibles :
-   - `TRANSCRIBE_MODEL` (defaut `./models/whisper-small`)
+   - `TRANSCRIBE_MODEL` (defaut `./models/whisper-medium`)
    - `TRANSCRIBE_DEVICE` (`auto` | `cpu` | `cuda`)
    - `TRANSCRIBE_COMPUTE_TYPE` (ex. `float16`, `float32`)
 3. Envoyez un fichier audio/Video via POST `http://localhost:8000/transcribe` (multipart, champ `file`).
@@ -75,8 +75,8 @@ Réponse de l'API :
   "word_count": 42,
   "char_count": 210,
   "segment_count": 5,
-  "model": "whisper-small",
-  "model_path": "/chemin/absolu/vers/models/whisper-small",
+  "model": "whisper-medium",
+  "model_path": "/chemin/absolu/vers/models/whisper-medium",
   "device": "cpu",
   "compute_type": "float32"
 }
@@ -90,11 +90,13 @@ Réponse de l'API :
 - Interface locale : `GET /recording` ouvre une page de capture audio (start/stop/envoi) qui poste directement vers `/transcribe`. La capture repose sur `MediaRecorder` (Chrome, Edge, Firefox, Android). Safari iOS ne gère pas encore cette API : privilégiez un envoi via l'app Dictaphone ou un raccourci iOS.
 
 ## Structure du projet
-- `transcribe.py` : script principal de transcription/traduction.
-- `app.py` : service FastAPI exposant l'API `/transcribe`.
-- `models/` : repertory cible pour stocker les modeles telecharges.
-- `input/` : placez ici vos fichiers audio/video avant traitement.
-- `requirements.txt` : dependances Python.
+- `transcribe.py` : script principal de transcription sur la ligne de commande.
+- `app.py` : point d'entrée FastAPI minimal (`uvicorn app:app`) qui délègue à `server/`.
+- `server/` : code serveur organisé (config, routes API, vues HTML, gestion des modèles).
+- `templates/` : gabarits Jinja2 pour les pages `/upload` et `/recording`.
+- `models/` : répertoire pour stocker les modèles téléchargés.
+- `input/` : déposez vos fichiers audio/vidéo avant traitement.
+- `requirements.txt` : dépendances Python.
 
 ## Roadmap possible
 - Automatisation du telechargement des modeles.
