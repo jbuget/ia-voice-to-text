@@ -72,7 +72,8 @@ Le script genere un fichier texte cote a cote du fichier source (`fichier_audio.
    ```
    - Réponse : un flux binaire WAV (`audio/wav`) téléchargeable.
    - Dépendance : la route s'appuie sur [Coqui TTS](https://github.com/coqui-ai/TTS). Le modèle est téléchargé une première fois (connexion requise) puis la synthèse fonctionne hors ligne.
-   - Vous pouvez pré-télécharger un modèle via `./download_model_tts.sh tts_models/fr/css10/vits [dossier_cache]`. Sans second argument, le cache est `./models/tts`.
+   - Les champs `language` et `speaker` sont optionnels. Ils ne sont pris en compte que si le modèle choisi est multilingue et/ou multi-voix.
+   - Vous pouvez pré-télécharger un modèle via `./download_model_tts.sh tts_models/fr/css10/vits [dossier_cache]`. Sans second argument, le cache racine est `./models` (les modèles sont stockés dans `./models/tts/…`).
 Réponse de l'API :
 ```json
 {

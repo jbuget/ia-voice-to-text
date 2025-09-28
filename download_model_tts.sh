@@ -3,10 +3,10 @@ set -euo pipefail
 
 # Usage: ./download_model_tts.sh [model_id] [target_dir]
 # Default model: tts_models/fr/css10/vits
-# Default target_dir: ./models/tts (servira de cache Coqui TTS via $TTS_HOME)
+# Default target_dir: ./models (servira de racine cache Coqui TTS via $TTS_HOME)
 
 MODEL_ID="${1:-tts_models/fr/css10/vits}"
-TARGET_DIR="${2:-models/tts}"
+TARGET_DIR="${2:-models}"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 
 if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then

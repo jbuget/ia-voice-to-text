@@ -25,3 +25,7 @@ output/
 
 # Logs
 *.log
+
+*.mp3
+*.wav
+*.m4a

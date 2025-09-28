@@ -66,7 +66,10 @@ def latest_response(
 
 class TextToSpeechRequest(BaseModel):
     text: str = Field(..., min_length=1, description="Texte à convertir en audio")
-    language: Optional[str] = Field(None, description="Code langue (fr, en, ...)")
+    language: Optional[str] = Field(
+        None,
+        description="Code langue (fr, en, ...) pour les modèles multilingues",
+    )
     model: Optional[str] = Field(
         None,
         description="Identifiant complet d'un modèle Coqui TTS (ex. tts_models/fr/css10/vits)",
