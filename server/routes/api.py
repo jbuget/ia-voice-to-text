@@ -1,13 +1,18 @@
 import asyncio
+from io import BytesIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, Response, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
 
 from transcribe import transcribe_audio
-from ..dependencies import get_model_manager
+from ..dependencies import get_model_manager, get_response_store
 from ..services.model_manager import ModelManager, ModelNotFoundError
+from ..services.response_store import ResponseStore
+from ..services.text_to_speech import TextToSpeechError, synthesize_to_wav
 
 router = APIRouter()
 
@@ -38,6 +43,59 @@ def health(model_manager: ModelManager = Depends(get_model_manager)) -> dict:
         },
         "loaded_models": list_models,
     }
+
+
+@router.post("/webhook/response")
+async def receive_response(
+    payload: dict = Body(...),
+    store: ResponseStore = Depends(get_response_store),
+) -> dict:
+    store.add(payload)
+    return {"status": "received"}
+
+
+@router.get("/responses/latest")
+def latest_response(
+    store: ResponseStore = Depends(get_response_store),
+) -> Response:
+    latest = store.latest()
+    if latest is None:
+        return Response(status_code=204)
+    return JSONResponse(latest)
+
+
+class TextToSpeechRequest(BaseModel):
+    text: str = Field(..., min_length=1, description="Texte à convertir en audio")
+    language: Optional[str] = Field(None, description="Code langue (fr, en, ...)")
+    model: Optional[str] = Field(
+        None,
+        description="Identifiant complet d'un modèle Coqui TTS (ex. tts_models/fr/css10/vits)",
+    )
+    speaker: Optional[str] = Field(
+        None,
+        description="Identifiant de voix pour les modèles multi-speaker",
+    )
+
+
+@router.post("/text-to-speech")
+async def text_to_speech(payload: TextToSpeechRequest) -> StreamingResponse:
+    try:
+        audio_bytes = await asyncio.to_thread(
+            synthesize_to_wav,
+            payload.text,
+            language=payload.language,
+            model_name=payload.model,
+            speaker_id=payload.speaker,
+        )
+    except TextToSpeechError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    headers = {"Content-Disposition": 'attachment; filename="speech.wav"'}
+    return StreamingResponse(
+        BytesIO(audio_bytes),
+        media_type="audio/wav",
+        headers=headers,
+    )
 
 
 @router.post("/transcribe")

@@ -105,6 +105,13 @@
       <h2>Métadonnées</h2>
       <pre id="meta-output">{{ '{ }' }}</pre>
     </div>
+    <div class="result">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+        <h2 style="margin:0;">Dernière réponse n8n</h2>
+        <button id="refresh-response" style="padding:0.4rem 0.9rem;font-size:0.9rem;border:0;border-radius:6px;background:#ffc107;color:#212529;cursor:pointer;">Actualiser</button>
+      </div>
+      <pre id="response-output">Aucune réponse reçue.</pre>
+    </div>
   </section>
 </main>
 {% endblock %}
@@ -123,6 +130,8 @@
   const player = document.getElementById('player');
   const textOutput = document.getElementById('text-output');
   const metaOutput = document.getElementById('meta-output');
+  const responseOutput = document.getElementById('response-output');
+  const refreshResponseBtn = document.getElementById('refresh-response');
 
   function setStatus(message) {
     statusEl.textContent = message;
@@ -220,6 +229,7 @@
       textOutput.textContent = data.text || '(réponse vide)';
       metaOutput.textContent = JSON.stringify(data, null, 2);
       setStatus('Transcription réussie.');
+      await loadLatestResponse();
     } catch (err) {
       console.error(err);
       setStatus(`Erreur: ${err.message}`);
@@ -228,6 +238,30 @@
       resetBtn.disabled = false;
     }
   });
+
+  async function loadLatestResponse() {
+    try {
+      const res = await fetch('/responses/latest');
+      if (res.status === 204) {
+        responseOutput.textContent = 'Aucune réponse reçue.';
+        return;
+      }
+      if (!res.ok) {
+        throw new Error('Impossible de récupérer la réponse.');
+      }
+      const data = await res.json();
+      responseOutput.textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+      console.error(err);
+      responseOutput.textContent = 'Erreur lors de la récupération de la réponse.';
+    }
+  }
+
+  refreshResponseBtn.addEventListener('click', () => {
+    loadLatestResponse();
+  });
+
+  loadLatestResponse();
 
   resetBtn.addEventListener('click', () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {

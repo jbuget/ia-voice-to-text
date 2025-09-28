@@ -150,8 +150,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-m",
         "--model",
-        default="./models/whisper-medium",
-        help="Chemin d’un dossier modèle OU nom HuggingFace (défaut: ./models/whisper-medium)",
+        default="./models/stt/whisper-medium",
+        help="Chemin d’un dossier modèle OU nom HuggingFace (défaut: ./models/stt/whisper-medium)",
     )
     parser.add_argument(
         "--device",

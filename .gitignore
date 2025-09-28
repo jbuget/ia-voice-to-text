@@ -16,7 +16,8 @@ env/
 .DS_Store
 
 # Model weights (downloaded separately)
-models/
+models/stt/
+models/tts/
 
 # Input/Output media and generated text
 input/

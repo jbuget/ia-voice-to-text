@@ -19,12 +19,12 @@ Petit utilitaire en ligne de commande et service API pour transcrire ou traduire
 3. Telechargez un modele Whisper open weight. Par exemple :
    - Utilisez le script fourni :
      ```bash
-     chmod +x download_model.sh
-     ./download_model.sh Systran/faster-whisper-medium models/whisper-medium
+     chmod +x download_model_stt.sh
+     ./download_model_stt.sh Systran/faster-whisper-medium models/stt/whisper-medium
      ```
      Les fichiers optionnels absents du depot (ex. `tokenizer_config.json`) sont ignores avec un simple avertissement.
    - Telechargement manuel d'un modele 
-     (`whisper-medium` par defaut) depuis https://huggingface.co/Systran/faster-whisper-medium (placez-le dans `./models/whisper-medium`).
+     (`whisper-medium` par defaut) depuis https://huggingface.co/Systran/faster-whisper-medium (placez-le dans `./models/stt/whisper-medium`).
    - Ou laissez `faster-whisper` recuperer automatiquement le modele en ligne si vous avez un acces reseau.
 
 ## Utilisation CLI
@@ -36,7 +36,7 @@ Le script genere un fichier texte cote a cote du fichier source (`fichier_audio.
 
 ### Options utiles
 - `-o/--output`: chemin du fichier texte de sortie (les dossiers manquants sont créés automatiquement).
-- `-m/--model`: chemin vers un dossier de modele local ou nom d'un modele Hugging Face (défaut `./models/whisper-medium`).
+- `-m/--model`: chemin vers un dossier de modele local ou nom d'un modele Hugging Face (défaut `./models/stt/whisper-medium`).
 - `--device`: force `cpu`, `cuda` ou `auto` (auto par defaut).
 - `--compute-type`: controle la precision (ex. `int8`, `float16`, `float32`). Par defaut le script choisit `float32` sur CPU pour eviter l'avertissement ctranslate2 et `float16` sur GPU.
 - `--language`: force un code langue (ex. `fr`, `en`). Par defaut la detection automatique est active.
@@ -54,15 +54,25 @@ Le script genere un fichier texte cote a cote du fichier source (`fichier_audio.
    uvicorn app:app --reload
    ```
    Variables d'environnement disponibles :
-   - `TRANSCRIBE_MODEL` (defaut `./models/whisper-medium`)
+   - `TRANSCRIBE_MODEL` (defaut `./models/stt/whisper-medium`)
    - `TRANSCRIBE_DEVICE` (`auto` | `cpu` | `cuda`)
    - `TRANSCRIBE_COMPUTE_TYPE` (ex. `float16`, `float32`)
 3. Envoyez un fichier audio/Video via POST `http://localhost:8000/transcribe` (multipart, champ `file`).
-   - Les modèles exploitables sont ceux **déjà présents dans le dossier `models/` au démarrage** (par exemple `whisper-medium`, `whisper-small`).
-   - Le champ `model` accepte le nom du dossier (`whisper-medium`) ou son chemin (`models/whisper-medium`).
+   - Les modèles exploitables sont ceux **déjà présents dans le dossier `models/stt/` au démarrage** (par exemple `whisper-medium`, `whisper-small`).
+   - Le champ `model` accepte le nom du dossier (`whisper-medium`) ou son chemin (`models/stt/whisper-medium`).
    - Vous pouvez transmettre `language`, `vad`, `word_timestamps`.
    - Après avoir ajouté un nouveau modèle sur disque, redémarrez le serveur pour qu'il soit pris en compte.
-
+4. Convertissez un texte en audio via POST `http://localhost:8000/text-to-speech` en JSON :
+   ```json
+   {
+     "text": "Bonjour !",
+     "language": "fr",
+     "model": "tts_models/fr/css10/vits"
+   }
+   ```
+   - Réponse : un flux binaire WAV (`audio/wav`) téléchargeable.
+   - Dépendance : la route s'appuie sur [Coqui TTS](https://github.com/coqui-ai/TTS). Le modèle est téléchargé une première fois (connexion requise) puis la synthèse fonctionne hors ligne.
+   - Vous pouvez pré-télécharger un modèle via `./download_model_tts.sh tts_models/fr/css10/vits [dossier_cache]`. Sans second argument, le cache est `./models/tts`.
 Réponse de l'API :
 ```json
 {
@@ -76,7 +86,7 @@ Réponse de l'API :
   "char_count": 210,
   "segment_count": 5,
   "model": "whisper-medium",
-  "model_path": "/chemin/absolu/vers/models/whisper-medium",
+  "model_path": "/chemin/absolu/vers/models/stt/whisper-medium",
   "device": "cpu",
   "compute_type": "float32"
 }
@@ -88,6 +98,7 @@ Réponse de l'API :
 - Vérifiez `GET /health` pour connaître la liste des modèles chargés (`loaded_models`).
 - Option pratique : `GET /upload` sert une page HTML pour envoyer un fichier audio existant vers votre webhook n8n (l'URL cible peut être saisie ou pré-remplie via `TRANSCRIBE_FORWARD_URL`).
 - Interface locale : `GET /recording` ouvre une page de capture audio (start/stop/envoi) qui poste directement vers `/transcribe`. La capture repose sur `MediaRecorder` (Chrome, Edge, Firefox, Android). Safari iOS ne gère pas encore cette API : privilégiez un envoi via l'app Dictaphone ou un raccourci iOS.
+- Webhook retour : n8n peut notifier l'application via `POST /webhook/response` (JSON libre). Le dernier message reçu est visible sur `/recording` ou via `GET /responses/latest`.
 
 ## Structure du projet
 - `transcribe.py` : script principal de transcription sur la ligne de commande.
